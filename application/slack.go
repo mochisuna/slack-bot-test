@@ -7,7 +7,7 @@ import (
 
 	"github.com/mochisuna/slack-reaction-award/domain"
 	"github.com/mochisuna/slack-reaction-award/handler"
-	"github.com/nlopes/slack"
+	"github.com/slack-go/slack"
 )
 
 const HistoryScopeSize = 1000
@@ -174,7 +174,9 @@ func (sh slackHandler) GetPermalink(channelID, timestamp string) (string, error)
 }
 
 func (sh slackHandler) PostMessage(channelID, text string) error {
-	opt := slack.MsgOptionText(text, false)
-	_, _, err := sh.Client.PostMessage(channelID, opt, slack.MsgOptionEnableLinkUnfurl())
-	return err
+	// opt := slack.MsgOptionText(text, false)
+	// _, _, err := sh.Client.PostMessage(channelID, opt, slack.MsgOptionEnableLinkUnfurl())
+	// return err
+	fmt.Println(text)
+	return nil
 }

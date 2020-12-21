@@ -11,7 +11,7 @@ import (
 )
 
 const ParallelChannels = 200
-const NumOfReaction = 10
+const NumOfReaction = 30
 
 func GetDatetime(year int) (string, string, error) {
 	loc, err := time.LoadLocation("Asia/Tokyo")
@@ -86,6 +86,13 @@ func Run(sh handler.SlackHandler, rh handler.RankingHandler, postChannelID strin
 			"優勝",
 			"準優勝",
 			"第3位",
+			"第4位",
+			"第5位",
+			"第6位",
+			"第7位",
+			"第8位",
+			"第9位",
+			"第10位",
 		}
 		// 受賞タイトルも入れとこう
 		if err = sh.PostMessage(postChannelID, header); err != nil {

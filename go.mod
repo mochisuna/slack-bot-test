@@ -4,5 +4,5 @@ go 1.13
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/slack-go/slack v0.6.3-0.20200219180527-2813fc504310
+	github.com/slack-go/slack v0.7.4
 )
