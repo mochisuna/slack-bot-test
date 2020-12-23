@@ -9,6 +9,7 @@ type Category struct {
 	Omoro   []Nominate
 	Variety []Nominate
 	Amount  []Nominate
+	Thanked []Nominate
 }
 
 type Reaction struct {

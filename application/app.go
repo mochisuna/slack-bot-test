@@ -3,6 +3,7 @@ package application
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -10,8 +11,8 @@ import (
 	"github.com/mochisuna/slack-reaction-award/handler"
 )
 
-const ParallelChannels = 200
-const NumOfReaction = 30
+const ParallelChannels = 100
+const NumOfReaction = 10
 
 func GetDatetime(year int) (string, string, error) {
 	loc, err := time.LoadLocation("Asia/Tokyo")
@@ -33,6 +34,25 @@ func Run(sh handler.SlackHandler, rh handler.RankingHandler, postChannelID strin
 		return
 	}
 
+	openingMessages := []string{
+		fmt.Sprintf("*これよりギフティslackリアクションアワード2020を開催します！*"),
+		"本大会では今年1年間でslackに投稿された全てのメッセージの中から最も優れた投稿を表彰します",
+		"表彰は以下の4部問となります",
+		" - 1. `一番面白かった投稿` ： reacji_omoroのリアクションが多い投稿",
+		" - 2. `一番リアクションの種類の多い投稿` ： ikedayamaチームの日常",
+		" - 3. `一番感謝された投稿` ： いつもありがとうございます",
+		" - 4. `グランプリ` ： 最もリアクションを多く集めた投稿",
+		"*さあ、栄光は誰の手に！*",
+		"~ちなみに景品とかはないです。ごめんね。~",
+	}
+	if err = sh.PostMessage(postChannelID, strings.Join(openingMessages, "\n")); err != nil {
+		fmt.Printf("Error occured when post slack: %v", err)
+		return
+	}
+	if err = sh.PostMessage(postChannelID, "- 集計中 -"); err != nil {
+		fmt.Printf("Error occured when post slack: %v", err)
+		return
+	}
 	// よっしゃ全部走らせるぞー(白目)
 	results := make([]domain.SlackMessage, 0, 30000)
 	mu := &sync.Mutex{}
@@ -88,16 +108,9 @@ func Run(sh handler.SlackHandler, rh handler.RankingHandler, postChannelID strin
 			"第3位",
 			"第4位",
 			"第5位",
-			"第6位",
-			"第7位",
-			"第8位",
-			"第9位",
-			"第10位",
 		}
 		// 受賞タイトルも入れとこう
-		if err = sh.PostMessage(postChannelID, header); err != nil {
-			return err
-		}
+		message := header + "\n"
 		for i, nom := range nominate {
 			if i >= len(rank) {
 				break
@@ -108,16 +121,18 @@ func Run(sh handler.SlackHandler, rh handler.RankingHandler, postChannelID strin
 				fmt.Printf("Error occured when getPermalink slack: %v", err)
 				return err
 			}
-			if err = sh.PostMessage(postChannelID, fmt.Sprintf("%v： %v%v\n%v\n", rank[i], nom.Count, unit, url)); err != nil {
-				fmt.Printf("Error occured when post slack: %v", err)
-				return err
-			}
+			message = message + fmt.Sprintf("%v： %v%v\n%v\n", rank[i], nom.Count, unit, url)
+		}
+		if err = sh.PostMessage(postChannelID, message); err != nil {
+			fmt.Printf("Error occured when post slack: %v", err)
+			return err
 		}
 		return nil
 	}
 	// 多分エラーハンドリングした方がいい
 	post("*reacji_omoro大賞*", "オモロ", ranking.Category.Omoro)
-	post("*沢山リアクションがついた大賞（種類部門）*", "種類", ranking.Category.Variety)
-	post("*沢山リアクションがついた大賞（数部門）*", "個", ranking.Category.Amount)
+	post("*沢山リアクションがついた大賞*", "種類", ranking.Category.Variety)
+	post("*最も感謝された大賞*", "感謝", ranking.Category.Thanked)
+	post("*gifteeリアクション大賞*", "個", ranking.Category.Amount)
 	fmt.Printf("実行時間: %v\n", time.Now().Sub(t))
 }

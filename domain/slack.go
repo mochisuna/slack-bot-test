@@ -30,3 +30,16 @@ func (r *SlackReaction) IsOmoro() bool {
 		return false
 	}
 }
+
+func (r *SlackReaction) IsThanked() bool {
+	switch r.Name {
+	case "arigataya", "arigatou", "arigatougozaimasu",
+		"arigatougozaimasu2", "arigatousagi", "itsumo-arigatou",
+		"nemu_thx", "pisuke_thankyou", "thank", "thanks", "thankyou-dancing",
+		"thank_you", "umaretekitekuretearigatou", "kami":
+		// 弊社の感謝枠
+		return true
+	default:
+		return false
+	}
+}

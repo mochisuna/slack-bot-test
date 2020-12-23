@@ -97,8 +97,8 @@ func (sh slackHandler) parseSlackMessage(channelID string, history *slack.Histor
 }
 
 func (sh slackHandler) GetChannelHistory(channel domain.SlackChannel) ([]domain.SlackMessage, error) {
-	paramCh := make(chan slack.HistoryParameters, 5)
-	msgCh := make(chan []domain.SlackMessage, 5)
+	paramCh := make(chan slack.HistoryParameters, ParallelHistories)
+	msgCh := make(chan []domain.SlackMessage, ParallelHistories)
 	defer close(paramCh)
 	defer close(msgCh)
 	t := time.Now()
@@ -174,9 +174,7 @@ func (sh slackHandler) GetPermalink(channelID, timestamp string) (string, error)
 }
 
 func (sh slackHandler) PostMessage(channelID, text string) error {
-	// opt := slack.MsgOptionText(text, false)
-	// _, _, err := sh.Client.PostMessage(channelID, opt, slack.MsgOptionEnableLinkUnfurl())
-	// return err
-	fmt.Println(text)
-	return nil
+	opt := slack.MsgOptionText(text, false)
+	_, _, err := sh.Client.PostMessage(channelID, opt, slack.MsgOptionEnableLinkUnfurl())
+	return err
 }

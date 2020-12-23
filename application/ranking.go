@@ -26,11 +26,13 @@ func newCategory() *domain.Category {
 		Omoro:   make([]domain.Nominate, NominateSize),
 		Variety: make([]domain.Nominate, NominateSize),
 		Amount:  make([]domain.Nominate, NominateSize),
+		Thanked: make([]domain.Nominate, NominateSize),
 	}
 	for i := 0; i < NominateSize; i++ {
 		nom.Omoro[i].Count = -1
 		nom.Variety[i].Count = -1
 		nom.Amount[i].Count = -1
+		nom.Thanked[i].Count = -1
 	}
 	return nom
 }
@@ -52,7 +54,7 @@ func NewRankingHandler(oldestTimestamp string) (handler.RankingHandler, error) {
 }
 
 // より良い投稿が見つかった場合はランキングを更新
-func compare(nom []domain.Nominate, msg domain.SlackMessage, count int, oldestTimestamp float64) {
+func compare(nom []domain.Nominate, msg domain.SlackMessage, count int) {
 	// 随時ソートしているので末端だけ見ればOK
 	if nom[NominateSize-1].Count < count {
 		nom[NominateSize-1].Count = count
@@ -68,20 +70,25 @@ func (rh rankingHandler) set(ch chan domain.SlackMessage) {
 		omoro := 0
 		variety := 0
 		amount := 0
+		thanked := 0
 		for _, reac := range msg.Reactions {
 			amount += reac.Count
 			variety++
-			rh.mu.Lock()
-			rh.reactionMap[reac.Name] += reac.Count
-			rh.mu.Unlock()
 			if reac.IsOmoro() {
 				omoro += reac.Count
 			}
+			if reac.IsThanked() {
+				thanked += reac.Count
+			}
+			rh.mu.Lock()
+			rh.reactionMap[reac.Name] += reac.Count
+			rh.mu.Unlock()
 		}
 
-		compare(rh.ranking.Category.Omoro, msg, omoro, rh.oldestTimestamp)
-		compare(rh.ranking.Category.Variety, msg, variety, rh.oldestTimestamp)
-		compare(rh.ranking.Category.Amount, msg, amount, rh.oldestTimestamp)
+		compare(rh.ranking.Category.Omoro, msg, omoro)
+		compare(rh.ranking.Category.Variety, msg, variety)
+		compare(rh.ranking.Category.Amount, msg, amount)
+		compare(rh.ranking.Category.Thanked, msg, thanked)
 		rh.wg.Done()
 	}
 }
